@@ -74,6 +74,7 @@ export function useAppointments() {
     select: (data) => selectFn(data, showAll),
     ...commonOptions,
     refetchOnWindowFocus: true,
+    refetchInterval: 60000,
   });
 
   const nextMonthYear = getNewMonthYear(monthYear, 1);
