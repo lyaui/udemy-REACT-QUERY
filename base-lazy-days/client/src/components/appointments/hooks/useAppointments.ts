@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { AppointmentDateMap } from '../types';
 import { getAvailableAppointments } from '../utils';
@@ -50,26 +50,24 @@ export function useAppointments() {
   // We need the user to pass to getAvailableAppointments so we can show
   //   appointments that the logged-in user has reserved (in white)
   const { userId } = useLoginData();
-
+  const selectFn = useCallback(
+    (data: AppointmentDateMap, showAll: boolean) => {
+      if (showAll) return data;
+      return getAvailableAppointments(data, userId);
+    },
+    [userId],
+  );
   /** ****************** END 2: filter appointments  ******************** */
   /** ****************** START 3: useQuery  ***************************** */
   // useQuery call for appointments for the current monthYear
 
-  // TODO: update with useQuery!
   const fallback: AppointmentDateMap = {};
   const { data: appointments = fallback } = useQuery({
     queryKey: [queryKeys.appointments, monthYear.year, monthYear.month],
     queryFn: () => getAppointments(monthYear.year, monthYear.month),
+    select: (data) => selectFn(data, showAll),
   });
 
-  // Notes:
-  //    1. appointments is an AppointmentDateMap (object with days of month
-  //       as properties, and arrays of appointments for that day as values)
-  //
-  //    2. The getAppointments query function needs monthYear.year and
-  //       monthYear.month
-
-  /** ****************** END 3: useQuery  ******************************* */
   const nextMonthYear = getNewMonthYear(monthYear, 1);
   const queryClient = useQueryClient();
 
@@ -83,6 +81,15 @@ export function useAppointments() {
       queryFn: () => getAppointments(nextMonthYear.year, nextMonthYear.month),
     });
   }, [queryClient, nextMonthYear.month, nextMonthYear.year]);
+
+  // Notes:
+  //    1. appointments is an AppointmentDateMap (object with days of month
+  //       as properties, and arrays of appointments for that day as values)
+  //
+  //    2. The getAppointments query function needs monthYear.year and
+  //       monthYear.month
+
+  /** ****************** END 3: useQuery  ******************************* */
 
   return { appointments, monthYear, updateMonthYear, showAll, setShowAll };
 }
