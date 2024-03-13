@@ -1,4 +1,4 @@
-import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosResponse } from 'axios';
 
 import type { User } from '@shared/types';
@@ -6,7 +6,10 @@ import type { User } from '@shared/types';
 import { useLoginData } from '@/auth/AuthContext';
 import { axiosInstance, getJWTHeader } from '@/axiosInstance';
 import { queryKeys } from '@/react-query/constants';
-import { generateUserKey } from '@/react-query/key-factories';
+import {
+  generateUserAppointmentsKey,
+  generateUserKey,
+} from '@/react-query/key-factories';
 
 // query function
 async function getUser(userId: number, userToken: string) {
@@ -48,6 +51,11 @@ export function useUser() {
   function clearUser() {
     // reset user to null in query cache
     queryClient.removeQueries({ queryKey: [queryKeys.user] });
+
+    // remove yser appointments data
+    queryClient.removeQueries({
+      queryKey: generateUserAppointmentsKey(userId, userToken),
+    });
   }
 
   return { user, updateUser, clearUser };
