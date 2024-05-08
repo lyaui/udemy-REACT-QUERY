@@ -42,7 +42,7 @@ export function usePatchUser() {
       toast({ title: 'user updated!', status: 'success' });
     },
     onSettled() {
-      // 重要！！必須 return
+      // 重要！！必須 return，onSettled 回傳的會是一個 promise
       // return promise to maintain 'inProgress' status until query invalidation is complete
       return queryClient.invalidateQueries({
         queryKey: [queryKeys.user],
